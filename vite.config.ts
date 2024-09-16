@@ -12,5 +12,5 @@ export default defineConfig({
   build: {
     outDir: 'dist',
   },
-  base: 'user-management',
+  base: '/user-management/',
 });
