@@ -1,4 +1,3 @@
-import React from 'react';
 import { Input } from '@/components/ui/Input';
 import { PLACEHOLDERS } from '@/lib/constants';
 import {
@@ -9,56 +8,61 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { setFilter } from '@/lib/users/filtersSlice';
+import { fetchUsers } from '@/lib/methods';
 
-const sampleUsers = [
-  {
-    id: 1,
-    name: 'John Doe',
-    username: 'johndoe',
-    email: 'johndoe@example.com',
-    phone: '123-456-7890',
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    username: 'janesmith',
-    email: 'janesmith@example.com',
-    phone: '987-654-3210',
-  },
-  {
-    id: 3,
-    name: 'Bob Johnson',
-    username: 'bobjohnson',
-    email: 'bob@example.com',
-    phone: '555-555-5555',
-  },
-];
+const UserTable = () => {
+  const dispatch = useAppDispatch();
+  const { users, loading } = useAppSelector((state) => state.users);
+  const filters = useAppSelector((state) => state.filters);
 
-const UserTable: React.FC = () => {
+  if (!loading && users.length === 0) {
+    dispatch(fetchUsers());
+  }
+
+  const handleFilterChange = (key: keyof typeof filters, value: string) => {
+    dispatch(setFilter({ key, value }));
+  };
+
+  const isFilterEmpty = Object.values(filters).every((value) => value === '');
+
+  const filteredUsers = isFilterEmpty
+    ? users
+    : users.filter((user) =>
+        Object.entries(filters).every(([key, value]) =>
+          user[key as keyof typeof filters]
+            ?.toLowerCase()
+            .includes(value.toLowerCase()),
+        ),
+      );
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="container mx-auto p-4">
       <div className="grid grid-cols-4 gap-4 mb-4">
         <Input
           type="text"
           placeholder={PLACEHOLDERS.NAME}
-          onDebouncedChange={(value) => console.log(PLACEHOLDERS.NAME, value)}
+          onDebouncedChange={(value) => handleFilterChange('name', value)}
         />
         <Input
           type="text"
           placeholder={PLACEHOLDERS.USERNAME}
-          onDebouncedChange={(value) =>
-            console.log(PLACEHOLDERS.USERNAME, value)
-          }
+          onDebouncedChange={(value) => handleFilterChange('username', value)}
         />
         <Input
           type="email"
           placeholder={PLACEHOLDERS.EMAIL}
-          onDebouncedChange={(value) => console.log(PLACEHOLDERS.EMAIL, value)}
+          onDebouncedChange={(value) => handleFilterChange('email', value)}
         />
         <Input
           type="text"
           placeholder={PLACEHOLDERS.PHONE}
-          onDebouncedChange={(value) => console.log(PLACEHOLDERS.PHONE, value)}
+          onDebouncedChange={(value) => handleFilterChange('phone', value)}
         />
       </div>
       <Table>
@@ -71,7 +75,7 @@ const UserTable: React.FC = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sampleUsers.map((user) => (
+          {filteredUsers.map((user) => (
             <TableRow key={user.id}>
               <TableCell className="py-2">{user.name}</TableCell>
               <TableCell className="py-2">{user.username}</TableCell>

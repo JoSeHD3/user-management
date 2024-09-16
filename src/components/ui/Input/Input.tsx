@@ -1,4 +1,4 @@
-import { ChangeEvent, InputHTMLAttributes, useCallback } from 'react';
+import { ChangeEvent, InputHTMLAttributes, useCallback, useState } from 'react';
 import { Input as ShadInput } from './base';
 import { debounce } from 'lodash';
 import { DEBOUNCE_TIME } from '@/lib/constants';
@@ -8,6 +8,8 @@ interface IInput extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = ({ onDebouncedChange, ...props }: IInput) => {
+  const [inputValue, setInputValue] = useState('');
+
   const debounceHandler = useCallback(
     debounce((value: string) => {
       onDebouncedChange(value);
@@ -15,8 +17,10 @@ export const Input = ({ onDebouncedChange, ...props }: IInput) => {
     [onDebouncedChange],
   );
 
-  const onChange = (e: ChangeEvent<HTMLInputElement>) =>
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
     debounceHandler(e.target.value);
+  };
 
-  return <ShadInput {...props} onChange={onChange} />;
+  return <ShadInput {...props} value={inputValue} onChange={onChange} />;
 };
